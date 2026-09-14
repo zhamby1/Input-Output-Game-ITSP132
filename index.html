@@ -1,261 +1,352 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ByteFix Computer Repair Simulator</title>
-  <style>
-    :root{
-      --bg:#0f172a; --panel:#111827; --card:#1f2937; --line:#374151;
-      --text:#f8fafc; --muted:#cbd5e1; --accent:#22c55e; --accent2:#38bdf8;
-      --danger:#ef4444; --warn:#f59e0b;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
-      background:linear-gradient(180deg,#0b1220,#111827);color:var(--text);
-    }
-    .wrap{max-width:1100px;margin:auto;padding:24px}
-    .top{display:grid;grid-template-columns:1.4fr .6fr;gap:16px;margin-bottom:18px}
-    .card{background:rgba(17,24,39,.96);border:1px solid var(--line);border-radius:18px;padding:20px}
-    h1,h2,h3,p{margin-top:0}
-    .eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent2);font-weight:800}
-    .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center}
-    .stat strong{font-size:2rem;display:block}
-    .ticket{margin-bottom:18px}
-    .level{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:var(--muted);font-size:.9rem}
-    .workspace{display:grid;grid-template-columns:1fr 1.1fr;gap:18px}
-    .parts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    button{font:inherit}
-    .part,.choice,.primary,.ghost{
-      min-height:48px;border-radius:14px;border:1px solid var(--line);cursor:pointer;
-    }
-    .part{background:#172033;color:var(--text);padding:12px}
-    .part:hover,.part.selected{border-color:var(--accent2);background:#1e293b}
-    .part .icon{font-size:2.2rem;display:block;margin-bottom:4px}
-    .bench{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;align-items:center}
-    .computer{background:#0b1220;border:1px dashed #475569;border-radius:16px;padding:18px;text-align:center}
-    .computer .screen{font-size:4rem}
-    .ports{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-    .port{font-size:.82rem;border:1px solid var(--line);padding:8px;border-radius:10px;color:var(--muted)}
-    .selected-box{text-align:center}
-    .selected-icon{font-size:4rem}
-    .primary{background:var(--accent);border-color:var(--accent);color:#052e16;font-weight:900;padding:0 18px;width:100%}
-    .primary:disabled{opacity:.4;cursor:not-allowed}
-    .classify{display:none;margin-top:18px}
-    .choices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .choice{background:#172033;color:var(--text);padding:12px;font-weight:800}
-    .feedback{margin-top:18px;background:#0b1220;border:1px solid var(--line);border-radius:14px;padding:14px;min-height:52px}
-    .finish{display:none;text-align:center}
-    .rank{font-size:1.4rem;color:var(--accent2);font-weight:900}
-    .legend{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
-    .legend>div{border:1px solid var(--line);border-radius:12px;padding:12px}
-    @media(max-width:800px){
-      .top,.workspace,.bench{grid-template-columns:1fr}
-      .parts{grid-template-columns:repeat(2,1fr)}
-    }
-    @media(max-width:480px){
-      .wrap{padding:14px}.choices,.legend,.stats{grid-template-columns:1fr}.parts{grid-template-columns:1fr 1fr}
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ByteFix Computer Repair Simulator</title>
+<style>
+:root{
+  --bg:#07111f;--panel:#0f1b2d;--card:#142238;--card2:#0b1627;--line:#2b3e59;
+  --text:#f7fbff;--muted:#b9c6d8;--accent:#22c55e;--blue:#38bdf8;--warn:#f59e0b;--bad:#ef4444;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:
+radial-gradient(circle at top,#10243f 0,#07111f 42%);color:var(--text);min-height:100vh}
+button{font:inherit}
+.wrap{max-width:1180px;margin:auto;padding:22px}
+.card{background:rgba(15,27,45,.96);border:1px solid var(--line);border-radius:20px;padding:20px}
+.top{display:grid;grid-template-columns:1.45fr .55fr;gap:16px;margin-bottom:16px}
+.eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.75rem;font-weight:900;color:var(--blue)}
+h1{font-size:clamp(1.8rem,4vw,3rem);margin:.25rem 0 .6rem}
+h2,h3{margin:.25rem 0 .6rem}
+p{line-height:1.55}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;align-content:center}
+.stat{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px}
+.stat span{display:block;color:var(--muted);font-size:.8rem}
+.stat strong{display:block;font-size:1.7rem;margin-top:2px}
+.ticketbar{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.level{border:1px solid var(--line);border-radius:999px;padding:7px 11px;color:var(--muted);white-space:nowrap}
+.grid{display:grid;grid-template-columns:1fr 1.15fr;gap:18px;margin-top:18px}
+.parts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.part,.choice,.fix,.primary,.secondary{
+  min-height:48px;border-radius:14px;border:1px solid var(--line);cursor:pointer
+}
+.part{background:#111f33;color:var(--text);padding:12px}
+.part:hover,.part.selected{border-color:var(--blue);background:#172a44}
+.part .icon{display:block;font-size:2.1rem;margin-bottom:5px}
+.bench{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;align-items:center}
+.computer{background:#091321;border:1px dashed #49627f;border-radius:17px;padding:18px;text-align:center}
+.screen{font-size:4.4rem}
+.ports{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.port{font-size:.8rem;color:var(--muted);border:1px solid var(--line);padding:8px;border-radius:10px}
+.selected{text-align:center}
+.selicon{font-size:4rem}
+.primary{background:var(--accent);border-color:var(--accent);color:#052e16;font-weight:900;padding:0 16px}
+.secondary{background:#142238;color:var(--text);padding:0 16px}
+.primary:disabled,.secondary:disabled{opacity:.4;cursor:not-allowed}
+.full{width:100%}
+.feedback{margin-top:16px;background:#091321;border:1px solid var(--line);border-radius:14px;padding:14px;min-height:54px}
+.classify,.troubleshoot{display:none;margin-top:16px}
+.choices,.fixes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.choice,.fix{background:#111f33;color:var(--text);padding:12px;font-weight:800}
+.troubleshoot{border:1px solid #7c5b17;background:rgba(120,83,10,.14);border-radius:18px;padding:16px}
+.alert{display:flex;gap:12px;align-items:flex-start}
+.alerticon{font-size:2.4rem}
+.symptom{font-size:1.05rem;font-weight:800;color:#fde68a}
+.statusline{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.badge{border:1px solid var(--line);border-radius:999px;padding:6px 9px;font-size:.8rem;color:var(--muted)}
+.log{margin-top:16px}
+.logitem{border-left:3px solid var(--blue);padding:8px 10px;margin:8px 0;background:#0b1627;border-radius:0 10px 10px 0;color:var(--muted)}
+.finish{display:none;text-align:center}
+.rank{font-size:1.4rem;color:var(--blue);font-weight:900}
+.legend{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.legend>div{border:1px solid var(--line);border-radius:12px;padding:12px}
+.flash{animation:flash .5s ease}
+@keyframes flash{0%{transform:scale(.985);opacity:.7}100%{transform:scale(1);opacity:1}}
+@media(max-width:860px){.top,.grid,.bench{grid-template-columns:1fr}.parts{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.wrap{padding:12px}.stats,.choices,.fixes,.legend{grid-template-columns:1fr}.parts{grid-template-columns:1fr 1fr}}
+</style>
 </head>
 <body>
-  <main class="wrap">
-    <section class="top">
-      <div class="card">
-        <div class="eyebrow">ByteFix Computer Repair Shop</div>
-        <h1>Input & Output Device Repair Simulator</h1>
-        <p>Read each repair ticket, choose the correct computer device, plug it in, and classify it as <b>Input</b>, <b>Output</b>, or <b>Both</b>.</p>
+<main class="wrap">
+  <section class="top">
+    <div class="card">
+      <div class="eyebrow">ByteFix Computer Repair Shop</div>
+      <h1>Input & Output Repair Simulator</h1>
+      <p>You are the technician. Install the correct device, classify it, and deal with surprise malfunctions when things go wrong.</p>
+    </div>
+    <div class="card stats">
+      <div class="stat"><span>Repairs</span><strong><span id="repairs">0</span>/8</strong></div>
+      <div class="stat"><span>Score</span><strong id="score">0</strong></div>
+      <div class="stat"><span>Fixes</span><strong id="fixesDone">0</strong></div>
+    </div>
+  </section>
+
+  <section id="game" class="card">
+    <div class="ticketbar">
+      <div>
+        <div class="eyebrow">Repair Ticket <span id="ticketNum">#1</span></div>
+        <h2 id="problemTitle"></h2>
+        <p id="problemText"></p>
       </div>
-      <div class="card stats">
-        <div class="stat"><span>Repairs</span><strong><span id="repairs">0</span>/8</strong></div>
-        <div class="stat"><span>Score</span><strong id="score">0</strong></div>
+      <div class="level">Technician Level: <span id="level">Rookie</span></div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <h3>Parts Shelf</h3>
+        <div id="parts" class="parts"></div>
       </div>
-    </section>
 
-    <section id="game">
-      <div class="card ticket">
-        <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-          <div>
-            <div class="eyebrow">Repair Ticket <span id="ticketNum">#1</span></div>
-            <h2 id="problemTitle">The customer cannot type.</h2>
-            <p id="problemText">Install a device that lets the customer enter letters and numbers.</p>
-          </div>
-          <div class="level">Technician Level: <span id="level">Rookie</span></div>
-        </div>
-
-        <div class="workspace">
-          <div>
-            <h3>Parts Shelf</h3>
-            <div id="parts" class="parts"></div>
-          </div>
-
-          <div>
-            <h3>Repair Bench</h3>
-            <div class="bench">
-              <div class="computer">
-                <div class="screen">🖥️</div>
-                <b>Desktop Computer</b>
-                <div class="ports">
-                  <div class="port">USB Port</div><div class="port">Display Port</div>
-                  <div class="port">Audio Port</div><div class="port">Wireless</div>
-                </div>
-              </div>
-              <div class="selected-box">
-                <div class="eyebrow">Selected Part</div>
-                <div id="selectedIcon" class="selected-icon">❓</div>
-                <h3 id="selectedName">Choose a part</h3>
-                <button id="plugBtn" class="primary" disabled>🔌 Plug It In</button>
-              </div>
+      <div>
+        <h3>Repair Bench</h3>
+        <div class="bench">
+          <div class="computer">
+            <div class="screen">🖥️</div>
+            <b>Desktop Computer</b>
+            <div class="ports">
+              <div class="port">USB Port</div>
+              <div class="port">Display Port</div>
+              <div class="port">Audio Port</div>
+              <div class="port">Wireless</div>
             </div>
           </div>
-        </div>
-
-        <div id="classify" class="classify">
-          <h3>Connection successful! What type of device is <span id="connectedName"></span>?</h3>
-          <div class="choices">
-            <button class="choice" data-type="input">⬇️ Input</button>
-            <button class="choice" data-type="output">⬆️ Output</button>
-            <button class="choice" data-type="both">↕️ Both</button>
+          <div class="selected">
+            <div class="eyebrow">Selected Part</div>
+            <div id="selectedIcon" class="selicon">❓</div>
+            <h3 id="selectedName">Choose a part</h3>
+            <button id="plugBtn" class="primary full" disabled>🔌 Plug It In</button>
           </div>
         </div>
-
-        <div id="feedback" class="feedback">Choose a device from the parts shelf to begin.</div>
       </div>
-    </section>
+    </div>
 
-    <section id="finish" class="card finish">
-      <div style="font-size:4rem">🏆</div>
-      <h2>Repair Shop Complete!</h2>
-      <p id="finalMessage"></p>
-      <div id="rank" class="rank"></div>
-      <div class="legend">
-        <div><b>Input</b><br><span style="color:var(--muted)">Sends data into the computer</span></div>
-        <div><b>Output</b><br><span style="color:var(--muted)">Sends data from the computer</span></div>
-        <div><b>Both</b><br><span style="color:var(--muted)">Sends and receives data</span></div>
+    <div id="classify" class="classify">
+      <h3>Connection successful. What type of device is <span id="connectedName"></span>?</h3>
+      <div class="choices">
+        <button class="choice" data-type="input">⬇️ Input</button>
+        <button class="choice" data-type="output">⬆️ Output</button>
+        <button class="choice" data-type="both">↕️ Both</button>
       </div>
-      <button id="restartBtn" class="primary" style="max-width:320px;margin-top:18px">Run Repair Shop Again</button>
-    </section>
-  </main>
+    </div>
+
+    <div id="troubleshoot" class="troubleshoot">
+      <div class="alert">
+        <div class="alerticon">⚠️</div>
+        <div>
+          <div class="eyebrow" style="color:#fbbf24">Something went wrong!</div>
+          <h3 id="troubleTitle">Unexpected problem</h3>
+          <div id="symptom" class="symptom"></div>
+          <p id="troubleHint"></p>
+        </div>
+      </div>
+      <div id="fixChoices" class="fixes"></div>
+    </div>
+
+    <div id="feedback" class="feedback" aria-live="polite">Choose a device from the parts shelf to begin.</div>
+
+    <div class="statusline">
+      <div class="badge">Input = data goes INTO the computer</div>
+      <div class="badge">Output = data comes OUT of the computer</div>
+      <div class="badge">Both = information travels both ways</div>
+    </div>
+
+    <div class="log">
+      <h3>Technician Log</h3>
+      <div id="logEntries"></div>
+    </div>
+  </section>
+
+  <section id="finish" class="card finish">
+    <div style="font-size:4rem">🏆</div>
+    <h2>Repair Shop Complete!</h2>
+    <p id="finalMessage"></p>
+    <div id="rank" class="rank"></div>
+    <div class="legend">
+      <div><b>Input</b><br><span style="color:var(--muted)">Keyboard, mouse, webcam, microphone</span></div>
+      <div><b>Output</b><br><span style="color:var(--muted)">Monitor, speakers, printer</span></div>
+      <div><b>Both</b><br><span style="color:var(--muted)">Touchscreen</span></div>
+    </div>
+    <button id="restartBtn" class="primary" style="max-width:330px;margin-top:18px">Start a New Shift</button>
+  </section>
+</main>
 
 <script>
-const devices = {
-  keyboard:{name:'Keyboard',icon:'⌨️',type:'input',why:'A keyboard sends keystrokes INTO the computer.'},
-  mouse:{name:'Mouse',icon:'🖱️',type:'input',why:'A mouse sends movement and clicks INTO the computer.'},
-  microphone:{name:'Microphone',icon:'🎤',type:'input',why:'A microphone sends sound INTO the computer.'},
-  webcam:{name:'Webcam',icon:'📷',type:'input',why:'A webcam sends pictures and video INTO the computer.'},
-  monitor:{name:'Monitor',icon:'🖥️',type:'output',why:'A monitor shows information coming OUT of the computer.'},
-  speakers:{name:'Speakers',icon:'🔊',type:'output',why:'Speakers play sound coming OUT of the computer.'},
-  printer:{name:'Printer',icon:'🖨️',type:'output',why:'A printer produces information OUT onto paper.'},
-  touchscreen:{name:'Touchscreen',icon:'📱',type:'both',why:'A touchscreen displays information and also receives your touch.'}
+const devices={
+ keyboard:{name:'Keyboard',icon:'⌨️',type:'input',why:'A keyboard sends keystrokes INTO the computer.'},
+ mouse:{name:'Mouse',icon:'🖱️',type:'input',why:'A mouse sends movement and clicks INTO the computer.'},
+ microphone:{name:'Microphone',icon:'🎤',type:'input',why:'A microphone sends sound INTO the computer.'},
+ webcam:{name:'Webcam',icon:'📷',type:'input',why:'A webcam sends pictures and video INTO the computer.'},
+ monitor:{name:'Monitor',icon:'🖥️',type:'output',why:'A monitor shows information coming OUT of the computer.'},
+ speakers:{name:'Speakers',icon:'🔊',type:'output',why:'Speakers play sound coming OUT of the computer.'},
+ printer:{name:'Printer',icon:'🖨️',type:'output',why:'A printer produces information OUT onto paper.'},
+ touchscreen:{name:'Touchscreen',icon:'📱',type:'both',why:'A touchscreen displays information and also receives touch input.'}
 };
 
-const tickets = [
-  {title:'The customer cannot type.',text:'Install a device that lets the customer enter letters and numbers.',correct:'keyboard'},
-  {title:'The pointer will not move.',text:'Install a device used to point, click, and select items.',correct:'mouse'},
-  {title:'The customer cannot hear videos.',text:'Install a device that plays sound from the computer.',correct:'speakers'},
-  {title:'Nothing is showing on the desk.',text:'Install a device that displays pictures, windows, and text.',correct:'monitor'},
-  {title:'Video calls have no picture.',text:'Install a device that captures live video.',correct:'webcam'},
-  {title:'Voice chat is not working.',text:'Install a device that captures the customer’s voice.',correct:'microphone'},
-  {title:'The customer needs a paper copy.',text:'Install a device that creates a physical copy of a document.',correct:'printer'},
-  {title:'The kiosk needs a screen students can tap.',text:'Install a device that displays information and accepts touch commands.',correct:'touchscreen'}
+const tickets=[
+ {title:'The customer cannot type.',text:'Install a device that lets the customer enter letters and numbers.',correct:'keyboard',
+ trouble:{title:'Keyboard installed... but still no typing!',symptom:'The keyboard lights are off and no keys respond.',hint:'Think about the connection before replacing the whole device.',
+ options:['Restart the printer','Reconnect the USB cable','Turn up the speakers'],correctFix:1,explain:'The keyboard is an input device. If it has no power or response, checking/reconnecting the USB connection is a good first step.'}},
+ {title:'The pointer will not move.',text:'Install a device used to point, click, and select items.',correct:'mouse',
+ trouble:{title:'Mouse connected, but the pointer is frozen.',symptom:'The mouse is on, but movement is not reaching the computer.',hint:'A connection problem can stop input data from reaching the PC.',
+ options:['Reconnect the mouse receiver/cable','Add paper to the printer','Increase monitor brightness'],correctFix:0,explain:'The mouse sends input data to the computer. Reconnecting its cable or wireless receiver can restore that data path.'}},
+ {title:'The customer cannot hear videos.',text:'Install a device that plays sound from the computer.',correct:'speakers',
+ trouble:{title:'Speakers installed... silence!',symptom:'The speakers have power, but no sound comes out.',hint:'Before replacing output hardware, check a simple setting.',
+ options:['Unmute/increase computer volume','Reconnect the keyboard','Cover the webcam'],correctFix:0,explain:'Speakers are output devices. If they have power but no sound, checking mute/volume is a sensible first troubleshooting step.'}},
+ {title:'Nothing is showing on the desk.',text:'Install a device that displays pictures, windows, and text.',correct:'monitor',
+ trouble:{title:'Monitor connected... black screen!',symptom:'The monitor has power, but says “No Signal.”',hint:'Power is present, so check the path carrying video output.',
+ options:['Check the display cable/input source','Replace the mouse','Turn up microphone volume'],correctFix:0,explain:'A monitor is an output device. “No Signal” often means the video cable or selected input source needs to be checked.'}},
+ {title:'Video calls have no picture.',text:'Install a device that captures live video.',correct:'webcam',
+ trouble:{title:'Webcam detected... but the picture is black!',symptom:'The app sees the camera, but no image appears.',hint:'Sometimes the device is fine but something physical blocks the input.',
+ options:['Open/remove the privacy cover','Turn up speakers','Add printer paper'],correctFix:0,explain:'A webcam is an input device. A privacy cover can block the camera even when the computer detects it.'}},
+ {title:'Voice chat is not working.',text:'Install a device that captures the customer’s voice.',correct:'microphone',
+ trouble:{title:'Microphone installed... nobody can hear the customer!',symptom:'The microphone appears in the computer, but voice level stays at zero.',hint:'Look for a setting that would stop audio input.',
+ options:['Unmute/select the correct microphone','Increase screen brightness','Reconnect the printer'],correctFix:0,explain:'A microphone is an input device. If the level stays at zero, check mute status and the selected input device.'}},
+ {title:'The customer needs a paper copy.',text:'Install a device that creates a physical copy of a document.',correct:'printer',
+ trouble:{title:'Printer connected... but nothing prints!',symptom:'The printer reports “Paper Empty.”',hint:'The computer sent output, but the printer cannot finish the physical job.',
+ options:['Add paper to the tray','Reconnect the webcam','Turn off the monitor'],correctFix:0,explain:'A printer is an output device. If it reports an empty tray, adding paper solves the immediate problem.'}},
+ {title:'The kiosk needs a screen students can tap.',text:'Install a device that displays information and accepts touch commands.',correct:'touchscreen',
+ trouble:{title:'Touchscreen display works, but taps do nothing!',symptom:'You can see the screen, but touch input is not responding.',hint:'One half of this BOTH-type device is working. Check the input connection.',
+ options:['Reconnect the USB/touch data cable','Add printer paper','Turn up speaker volume'],correctFix:0,explain:'A touchscreen is both input and output. The display can work while the touch-data connection fails.'}}
 ];
 
-let order=[], ticketIndex=0, score=0, selected=null, installed=null;
-const $ = s => document.querySelector(s);
-const shuffle = arr => [...arr].sort(()=>Math.random()-.5);
+let order=[],ticketIndex=0,score=0,selected=null,installed=null,fixesDone=0,phase='install';
+const $=s=>document.querySelector(s);
+const shuffle=a=>[...a].sort(()=>Math.random()-.5);
 
-function renderParts(){
-  $('#parts').innerHTML='';
-  shuffle(Object.keys(devices)).forEach(key=>{
-    const d=devices[key];
-    const b=document.createElement('button');
-    b.className='part';
-    b.innerHTML=`<span class="icon">${d.icon}</span><b>${d.name}</b>`;
-    b.addEventListener('click',()=>selectPart(key,b));
-    $('#parts').appendChild(b);
-  });
+function addLog(text){
+ const d=document.createElement('div');
+ d.className='logitem';
+ d.textContent=text;
+ $('#logEntries').prepend(d);
 }
 
-function selectPart(key,button){
-  selected=key;
-  document.querySelectorAll('.part').forEach(x=>x.classList.remove('selected'));
-  button.classList.add('selected');
-  $('#selectedIcon').textContent=devices[key].icon;
-  $('#selectedName').textContent=devices[key].name;
-  $('#plugBtn').disabled=false;
-  $('#feedback').textContent=`You selected ${devices[key].name}. Plug it in to test the repair.`;
+function renderParts(){
+ $('#parts').innerHTML='';
+ shuffle(Object.keys(devices)).forEach(key=>{
+   const d=devices[key],b=document.createElement('button');
+   b.className='part'; b.innerHTML=`<span class="icon">${d.icon}</span><b>${d.name}</b>`;
+   b.addEventListener('click',()=>selectPart(key,b)); $('#parts').appendChild(b);
+ });
+}
+
+function selectPart(key,b){
+ if(phase!=='install')return;
+ selected=key;
+ document.querySelectorAll('.part').forEach(x=>x.classList.remove('selected'));
+ b.classList.add('selected');
+ $('#selectedIcon').textContent=devices[key].icon;
+ $('#selectedName').textContent=devices[key].name;
+ $('#plugBtn').disabled=false;
+ $('#feedback').textContent=`You selected ${devices[key].name}. Plug it in to test the repair.`;
 }
 
 function renderTicket(){
-  const t=order[ticketIndex];
-  $('#ticketNum').textContent='#'+(ticketIndex+1);
-  $('#problemTitle').textContent=t.title;
-  $('#problemText').textContent=t.text;
-  $('#repairs').textContent=ticketIndex;
-  $('#score').textContent=score;
-  $('#level').textContent=ticketIndex<3?'Rookie':ticketIndex<6?'Technician':'Expert';
-  selected=installed=null;
-  $('#selectedIcon').textContent='❓';
-  $('#selectedName').textContent='Choose a part';
-  $('#plugBtn').disabled=true;
-  $('#classify').style.display='none';
-  $('#feedback').textContent='Choose a device from the parts shelf to solve the repair ticket.';
-  renderParts();
+ phase='install';
+ const t=order[ticketIndex];
+ $('#ticketNum').textContent='#'+(ticketIndex+1);
+ $('#problemTitle').textContent=t.title;
+ $('#problemText').textContent=t.text;
+ $('#repairs').textContent=ticketIndex;
+ $('#score').textContent=score;
+ $('#fixesDone').textContent=fixesDone;
+ $('#level').textContent=ticketIndex<3?'Rookie':ticketIndex<6?'Technician':'Expert';
+ selected=installed=null;
+ $('#selectedIcon').textContent='❓'; $('#selectedName').textContent='Choose a part';
+ $('#plugBtn').disabled=true;
+ $('#classify').style.display='none'; $('#troubleshoot').style.display='none';
+ $('#feedback').textContent='Choose a device from the parts shelf to solve the repair ticket.';
+ renderParts();
 }
 
 $('#plugBtn').addEventListener('click',()=>{
-  if(!selected) return;
-  const t=order[ticketIndex], d=devices[selected];
-  if(selected!==t.correct){
-    score=Math.max(0,score-2);
-    $('#score').textContent=score;
-    $('#feedback').innerHTML=`❌ <b>${d.name} does not solve this repair.</b> Read the ticket again and choose a different device.`;
-    return;
-  }
-  installed=selected;
-  score+=5;
-  $('#score').textContent=score;
-  $('#connectedName').textContent=d.name;
-  $('#classify').style.display='block';
-  $('#feedback').innerHTML=`✅ <b>Repair successful!</b> The ${d.name} solved the problem. Now classify the device.`;
-  $('#plugBtn').disabled=true;
+ if(!selected||phase!=='install')return;
+ const t=order[ticketIndex],d=devices[selected];
+ if(selected!==t.correct){
+   score=Math.max(0,score-2); $('#score').textContent=score;
+   $('#feedback').innerHTML=`❌ <b>${d.name} does not solve this repair.</b> Think about what kind of information needs to move.`;
+   addLog(`Wrong part tried: ${d.name}.`);
+   return;
+ }
+ installed=selected; phase='classify'; score+=5; $('#score').textContent=score;
+ $('#connectedName').textContent=d.name; $('#classify').style.display='block';
+ $('#feedback').innerHTML=`✅ <b>Hardware installed!</b> Now classify the ${d.name}.`;
+ addLog(`${d.name} installed successfully.`);
+ $('#plugBtn').disabled=true;
 });
 
 document.querySelectorAll('.choice').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    if(!installed) return;
-    const d=devices[installed];
-    if(btn.dataset.type===d.type){
-      score+=5;
-      $('#feedback').innerHTML=`⭐ <b>Correct!</b> ${d.why}`;
-    }else{
-      $('#feedback').innerHTML=`💡 <b>Not quite.</b> ${d.why} It is <b>${d.type.toUpperCase()}</b>.`;
-    }
-    $('#score').textContent=score;
-    document.querySelectorAll('.choice').forEach(x=>x.disabled=true);
-    setTimeout(nextTicket,900);
-  });
+ btn.addEventListener('click',()=>{
+   if(phase!=='classify'||!installed)return;
+   const d=devices[installed];
+   document.querySelectorAll('.choice').forEach(x=>x.disabled=true);
+   if(btn.dataset.type===d.type){
+     score+=5; $('#feedback').innerHTML=`⭐ <b>Correct!</b> ${d.why}`;
+     addLog(`${d.name} correctly classified as ${d.type.toUpperCase()}.`);
+   }else{
+     $('#feedback').innerHTML=`💡 <b>Not quite.</b> ${d.why} It is <b>${d.type.toUpperCase()}</b>.`;
+     addLog(`${d.name} classification corrected to ${d.type.toUpperCase()}.`);
+   }
+   $('#score').textContent=score;
+   setTimeout(startTrouble,700);
+ });
 });
 
+function startTrouble(){
+ document.querySelectorAll('.choice').forEach(x=>x.disabled=false);
+ $('#classify').style.display='none';
+ phase='trouble';
+ const tr=order[ticketIndex].trouble;
+ $('#troubleTitle').textContent=tr.title;
+ $('#symptom').textContent=tr.symptom;
+ $('#troubleHint').textContent=tr.hint;
+ const box=$('#fixChoices'); box.innerHTML='';
+ tr.options.forEach((opt,i)=>{
+   const b=document.createElement('button'); b.className='fix'; b.textContent=opt;
+   b.addEventListener('click',()=>attemptFix(i,b)); box.appendChild(b);
+ });
+ $('#troubleshoot').style.display='block';
+ $('#troubleshoot').classList.add('flash');
+ setTimeout(()=>$('#troubleshoot').classList.remove('flash'),600);
+ $('#feedback').innerHTML='⚠️ <b>Surprise malfunction!</b> Diagnose the symptom and choose the best first fix.';
+ addLog(`Unexpected failure: ${tr.symptom}`);
+}
+
+function attemptFix(i,b){
+ if(phase!=='trouble')return;
+ const tr=order[ticketIndex].trouble;
+ if(i===tr.correctFix){
+   phase='done'; fixesDone++; score+=7;
+   $('#score').textContent=score; $('#fixesDone').textContent=fixesDone;
+   $('#feedback').innerHTML=`🛠️ <b>Repair complete!</b> ${tr.explain}`;
+   addLog(`Troubleshooting successful: ${tr.options[i]}.`);
+   document.querySelectorAll('.fix').forEach(x=>x.disabled=true);
+   setTimeout(nextTicket,1200);
+ }else{
+   score=Math.max(0,score-1); $('#score').textContent=score;
+   $('#feedback').innerHTML=`❌ <b>That probably won't fix this symptom.</b> Try another troubleshooting step.`;
+   b.disabled=true;
+   addLog(`Troubleshooting step did not solve it: ${tr.options[i]}.`);
+ }
+}
+
 function nextTicket(){
-  ticketIndex++;
-  document.querySelectorAll('.choice').forEach(x=>x.disabled=false);
-  if(ticketIndex>=order.length){
-    $('#repairs').textContent=order.length;
-    $('#game').style.display='none';
-    $('#finish').style.display='block';
-    const rank=score>=75?'Master Technician':score>=55?'Certified Technician':score>=35?'Junior Technician':'Technician in Training';
-    $('#finalMessage').textContent=`Final score: ${score} points`;
-    $('#rank').textContent=rank;
-  }else renderTicket();
+ ticketIndex++;
+ document.querySelectorAll('.fix,.choice').forEach(x=>x.disabled=false);
+ if(ticketIndex>=order.length){
+   $('#repairs').textContent=order.length;
+   $('#game').style.display='none'; $('#finish').style.display='block';
+   const rank=score>=125?'Master Repair Technician':score>=100?'Certified Troubleshooter':score>=75?'Computer Technician':'Technician in Training';
+   $('#finalMessage').textContent=`You completed ${order.length} repair tickets, solved ${fixesDone} malfunctions, and scored ${score} points.`;
+   $('#rank').textContent=rank;
+ }else renderTicket();
 }
 
 $('#restartBtn').addEventListener('click',()=>{
-  ticketIndex=0; score=0; order=shuffle(tickets);
-  $('#game').style.display='block';
-  $('#finish').style.display='none';
-  renderTicket();
+ ticketIndex=0;score=0;fixesDone=0;order=shuffle(tickets);
+ $('#logEntries').innerHTML='';
+ $('#game').style.display='block';$('#finish').style.display='none';
+ renderTicket();
 });
 
 order=shuffle(tickets);
