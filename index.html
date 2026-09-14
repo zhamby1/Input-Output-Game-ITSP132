@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ByteFix Computer Repair Simulator</title>
+  <style>
+    :root{
+      --bg:#0f172a; --panel:#111827; --card:#1f2937; --line:#374151;
+      --text:#f8fafc; --muted:#cbd5e1; --accent:#22c55e; --accent2:#38bdf8;
+      --danger:#ef4444; --warn:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+      background:linear-gradient(180deg,#0b1220,#111827);color:var(--text);
+    }
+    .wrap{max-width:1100px;margin:auto;padding:24px}
+    .top{display:grid;grid-template-columns:1.4fr .6fr;gap:16px;margin-bottom:18px}
+    .card{background:rgba(17,24,39,.96);border:1px solid var(--line);border-radius:18px;padding:20px}
+    h1,h2,h3,p{margin-top:0}
+    .eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent2);font-weight:800}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center}
+    .stat strong{font-size:2rem;display:block}
+    .ticket{margin-bottom:18px}
+    .level{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:var(--muted);font-size:.9rem}
+    .workspace{display:grid;grid-template-columns:1fr 1.1fr;gap:18px}
+    .parts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    button{font:inherit}
+    .part,.choice,.primary,.ghost{
+      min-height:48px;border-radius:14px;border:1px solid var(--line);cursor:pointer;
+    }
+    .part{background:#172033;color:var(--text);padding:12px}
+    .part:hover,.part.selected{border-color:var(--accent2);background:#1e293b}
+    .part .icon{font-size:2.2rem;display:block;margin-bottom:4px}
+    .bench{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;align-items:center}
+    .computer{background:#0b1220;border:1px dashed #475569;border-radius:16px;padding:18px;text-align:center}
+    .computer .screen{font-size:4rem}
+    .ports{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+    .port{font-size:.82rem;border:1px solid var(--line);padding:8px;border-radius:10px;color:var(--muted)}
+    .selected-box{text-align:center}
+    .selected-icon{font-size:4rem}
+    .primary{background:var(--accent);border-color:var(--accent);color:#052e16;font-weight:900;padding:0 18px;width:100%}
+    .primary:disabled{opacity:.4;cursor:not-allowed}
+    .classify{display:none;margin-top:18px}
+    .choices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .choice{background:#172033;color:var(--text);padding:12px;font-weight:800}
+    .feedback{margin-top:18px;background:#0b1220;border:1px solid var(--line);border-radius:14px;padding:14px;min-height:52px}
+    .finish{display:none;text-align:center}
+    .rank{font-size:1.4rem;color:var(--accent2);font-weight:900}
+    .legend{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+    .legend>div{border:1px solid var(--line);border-radius:12px;padding:12px}
+    @media(max-width:800px){
+      .top,.workspace,.bench{grid-template-columns:1fr}
+      .parts{grid-template-columns:repeat(2,1fr)}
+    }
+    @media(max-width:480px){
+      .wrap{padding:14px}.choices,.legend,.stats{grid-template-columns:1fr}.parts{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="top">
+      <div class="card">
+        <div class="eyebrow">ByteFix Computer Repair Shop</div>
+        <h1>Input & Output Device Repair Simulator</h1>
+        <p>Read each repair ticket, choose the correct computer device, plug it in, and classify it as <b>Input</b>, <b>Output</b>, or <b>Both</b>.</p>
+      </div>
+      <div class="card stats">
+        <div class="stat"><span>Repairs</span><strong><span id="repairs">0</span>/8</strong></div>
+        <div class="stat"><span>Score</span><strong id="score">0</strong></div>
+      </div>
+    </section>
+
+    <section id="game">
+      <div class="card ticket">
+        <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div>
+            <div class="eyebrow">Repair Ticket <span id="ticketNum">#1</span></div>
+            <h2 id="problemTitle">The customer cannot type.</h2>
+            <p id="problemText">Install a device that lets the customer enter letters and numbers.</p>
+          </div>
+          <div class="level">Technician Level: <span id="level">Rookie</span></div>
+        </div>
+
+        <div class="workspace">
+          <div>
+            <h3>Parts Shelf</h3>
+            <div id="parts" class="parts"></div>
+          </div>
+
+          <div>
+            <h3>Repair Bench</h3>
+            <div class="bench">
+              <div class="computer">
+                <div class="screen">🖥️</div>
+                <b>Desktop Computer</b>
+                <div class="ports">
+                  <div class="port">USB Port</div><div class="port">Display Port</div>
+                  <div class="port">Audio Port</div><div class="port">Wireless</div>
+                </div>
+              </div>
+              <div class="selected-box">
+                <div class="eyebrow">Selected Part</div>
+                <div id="selectedIcon" class="selected-icon">❓</div>
+                <h3 id="selectedName">Choose a part</h3>
+                <button id="plugBtn" class="primary" disabled>🔌 Plug It In</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="classify" class="classify">
+          <h3>Connection successful! What type of device is <span id="connectedName"></span>?</h3>
+          <div class="choices">
+            <button class="choice" data-type="input">⬇️ Input</button>
+            <button class="choice" data-type="output">⬆️ Output</button>
+            <button class="choice" data-type="both">↕️ Both</button>
+          </div>
+        </div>
+
+        <div id="feedback" class="feedback">Choose a device from the parts shelf to begin.</div>
+      </div>
+    </section>
+
+    <section id="finish" class="card finish">
+      <div style="font-size:4rem">🏆</div>
+      <h2>Repair Shop Complete!</h2>
+      <p id="finalMessage"></p>
+      <div id="rank" class="rank"></div>
+      <div class="legend">
+        <div><b>Input</b><br><span style="color:var(--muted)">Sends data into the computer</span></div>
+        <div><b>Output</b><br><span style="color:var(--muted)">Sends data from the computer</span></div>
+        <div><b>Both</b><br><span style="color:var(--muted)">Sends and receives data</span></div>
+      </div>
+      <button id="restartBtn" class="primary" style="max-width:320px;margin-top:18px">Run Repair Shop Again</button>
+    </section>
+  </main>
+
+<script>
+const devices = {
+  keyboard:{name:'Keyboard',icon:'⌨️',type:'input',why:'A keyboard sends keystrokes INTO the computer.'},
+  mouse:{name:'Mouse',icon:'🖱️',type:'input',why:'A mouse sends movement and clicks INTO the computer.'},
+  microphone:{name:'Microphone',icon:'🎤',type:'input',why:'A microphone sends sound INTO the computer.'},
+  webcam:{name:'Webcam',icon:'📷',type:'input',why:'A webcam sends pictures and video INTO the computer.'},
+  monitor:{name:'Monitor',icon:'🖥️',type:'output',why:'A monitor shows information coming OUT of the computer.'},
+  speakers:{name:'Speakers',icon:'🔊',type:'output',why:'Speakers play sound coming OUT of the computer.'},
+  printer:{name:'Printer',icon:'🖨️',type:'output',why:'A printer produces information OUT onto paper.'},
+  touchscreen:{name:'Touchscreen',icon:'📱',type:'both',why:'A touchscreen displays information and also receives your touch.'}
+};
+
+const tickets = [
+  {title:'The customer cannot type.',text:'Install a device that lets the customer enter letters and numbers.',correct:'keyboard'},
+  {title:'The pointer will not move.',text:'Install a device used to point, click, and select items.',correct:'mouse'},
+  {title:'The customer cannot hear videos.',text:'Install a device that plays sound from the computer.',correct:'speakers'},
+  {title:'Nothing is showing on the desk.',text:'Install a device that displays pictures, windows, and text.',correct:'monitor'},
+  {title:'Video calls have no picture.',text:'Install a device that captures live video.',correct:'webcam'},
+  {title:'Voice chat is not working.',text:'Install a device that captures the customer’s voice.',correct:'microphone'},
+  {title:'The customer needs a paper copy.',text:'Install a device that creates a physical copy of a document.',correct:'printer'},
+  {title:'The kiosk needs a screen students can tap.',text:'Install a device that displays information and accepts touch commands.',correct:'touchscreen'}
+];
+
+let order=[], ticketIndex=0, score=0, selected=null, installed=null;
+const $ = s => document.querySelector(s);
+const shuffle = arr => [...arr].sort(()=>Math.random()-.5);
+
+function renderParts(){
+  $('#parts').innerHTML='';
+  shuffle(Object.keys(devices)).forEach(key=>{
+    const d=devices[key];
+    const b=document.createElement('button');
+    b.className='part';
+    b.innerHTML=`<span class="icon">${d.icon}</span><b>${d.name}</b>`;
+    b.addEventListener('click',()=>selectPart(key,b));
+    $('#parts').appendChild(b);
+  });
+}
+
+function selectPart(key,button){
+  selected=key;
+  document.querySelectorAll('.part').forEach(x=>x.classList.remove('selected'));
+  button.classList.add('selected');
+  $('#selectedIcon').textContent=devices[key].icon;
+  $('#selectedName').textContent=devices[key].name;
+  $('#plugBtn').disabled=false;
+  $('#feedback').textContent=`You selected ${devices[key].name}. Plug it in to test the repair.`;
+}
+
+function renderTicket(){
+  const t=order[ticketIndex];
+  $('#ticketNum').textContent='#'+(ticketIndex+1);
+  $('#problemTitle').textContent=t.title;
+  $('#problemText').textContent=t.text;
+  $('#repairs').textContent=ticketIndex;
+  $('#score').textContent=score;
+  $('#level').textContent=ticketIndex<3?'Rookie':ticketIndex<6?'Technician':'Expert';
+  selected=installed=null;
+  $('#selectedIcon').textContent='❓';
+  $('#selectedName').textContent='Choose a part';
+  $('#plugBtn').disabled=true;
+  $('#classify').style.display='none';
+  $('#feedback').textContent='Choose a device from the parts shelf to solve the repair ticket.';
+  renderParts();
+}
+
+$('#plugBtn').addEventListener('click',()=>{
+  if(!selected) return;
+  const t=order[ticketIndex], d=devices[selected];
+  if(selected!==t.correct){
+    score=Math.max(0,score-2);
+    $('#score').textContent=score;
+    $('#feedback').innerHTML=`❌ <b>${d.name} does not solve this repair.</b> Read the ticket again and choose a different device.`;
+    return;
+  }
+  installed=selected;
+  score+=5;
+  $('#score').textContent=score;
+  $('#connectedName').textContent=d.name;
+  $('#classify').style.display='block';
+  $('#feedback').innerHTML=`✅ <b>Repair successful!</b> The ${d.name} solved the problem. Now classify the device.`;
+  $('#plugBtn').disabled=true;
+});
+
+document.querySelectorAll('.choice').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    if(!installed) return;
+    const d=devices[installed];
+    if(btn.dataset.type===d.type){
+      score+=5;
+      $('#feedback').innerHTML=`⭐ <b>Correct!</b> ${d.why}`;
+    }else{
+      $('#feedback').innerHTML=`💡 <b>Not quite.</b> ${d.why} It is <b>${d.type.toUpperCase()}</b>.`;
+    }
+    $('#score').textContent=score;
+    document.querySelectorAll('.choice').forEach(x=>x.disabled=true);
+    setTimeout(nextTicket,900);
+  });
+});
+
+function nextTicket(){
+  ticketIndex++;
+  document.querySelectorAll('.choice').forEach(x=>x.disabled=false);
+  if(ticketIndex>=order.length){
+    $('#repairs').textContent=order.length;
+    $('#game').style.display='none';
+    $('#finish').style.display='block';
+    const rank=score>=75?'Master Technician':score>=55?'Certified Technician':score>=35?'Junior Technician':'Technician in Training';
+    $('#finalMessage').textContent=`Final score: ${score} points`;
+    $('#rank').textContent=rank;
+  }else renderTicket();
+}
+
+$('#restartBtn').addEventListener('click',()=>{
+  ticketIndex=0; score=0; order=shuffle(tickets);
+  $('#game').style.display='block';
+  $('#finish').style.display='none';
+  renderTicket();
+});
+
+order=shuffle(tickets);
+renderTicket();
+</script>
+</body>
+</html>
