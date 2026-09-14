@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ByteFix Computer Repair Simulator</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2307111f'/%3E%3Cpath d='M14 14h36v26H14z' fill='%2338bdf8'/%3E%3Cpath d='M19 19h26v16H19z' fill='%230f1b2d'/%3E%3Cpath d='M25 47h14M32 40v7' stroke='%2322c55e' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
 :root{
   --bg:#07111f;--panel:#0f1b2d;--card:#142238;--card2:#0b1627;--line:#2b3e59;
@@ -73,10 +74,10 @@ p{line-height:1.55}
     <div class="card">
       <div class="eyebrow">ByteFix Computer Repair Shop</div>
       <h1>Input & Output Repair Simulator</h1>
-      <p>You are the technician. Install the correct device, classify it, and deal with surprise malfunctions when things go wrong.</p>
+      <p>You are the technician. Work through scenario-based tickets inspired by CompTIA A+ Core 1: identify the device, classify its data flow, and choose the <b>best first troubleshooting step</b>.</p>
     </div>
     <div class="card stats">
-      <div class="stat"><span>Repairs</span><strong><span id="repairs">0</span>/8</strong></div>
+      <div class="stat"><span>Repairs</span><strong><span id="repairs">0</span>/<span id="totalRepairs">12</span></strong></div>
       <div class="stat"><span>Score</span><strong id="score">0</strong></div>
       <div class="stat"><span>Fixes</span><strong id="fixesDone">0</strong></div>
     </div>
@@ -149,6 +150,7 @@ p{line-height:1.55}
       <div class="badge">Input = data goes INTO the computer</div>
       <div class="badge">Output = data comes OUT of the computer</div>
       <div class="badge">Both = information travels both ways</div>
+      <div class="badge">A+ habit: verify the symptom, then test the simplest likely cause</div>
     </div>
 
     <div class="log">
@@ -163,9 +165,9 @@ p{line-height:1.55}
     <p id="finalMessage"></p>
     <div id="rank" class="rank"></div>
     <div class="legend">
-      <div><b>Input</b><br><span style="color:var(--muted)">Keyboard, mouse, webcam, microphone</span></div>
-      <div><b>Output</b><br><span style="color:var(--muted)">Monitor, speakers, printer</span></div>
-      <div><b>Both</b><br><span style="color:var(--muted)">Touchscreen</span></div>
+      <div><b>Input</b><br><span style="color:var(--muted)">Keyboard, mouse, scanner, webcam, microphone</span></div>
+      <div><b>Output</b><br><span style="color:var(--muted)">Monitor, projector, speakers, printer</span></div>
+      <div><b>Both</b><br><span style="color:var(--muted)">Touchscreen and headset</span></div>
     </div>
     <button id="restartBtn" class="primary" style="max-width:330px;margin-top:18px">Start a New Shift</button>
   </section>
@@ -180,34 +182,26 @@ const devices={
  monitor:{name:'Monitor',icon:'🖥️',type:'output',why:'A monitor shows information coming OUT of the computer.'},
  speakers:{name:'Speakers',icon:'🔊',type:'output',why:'Speakers play sound coming OUT of the computer.'},
  printer:{name:'Printer',icon:'🖨️',type:'output',why:'A printer produces information OUT onto paper.'},
- touchscreen:{name:'Touchscreen',icon:'📱',type:'both',why:'A touchscreen displays information and also receives touch input.'}
+ touchscreen:{name:'Touchscreen',icon:'📱',type:'both',why:'A touchscreen displays information and also receives touch input.'},
+ scanner:{name:'Scanner',icon:'📄',type:'input',why:'A scanner converts a paper document into data sent INTO the computer.'},
+ projector:{name:'Projector',icon:'📽️',type:'output',why:'A projector displays video coming OUT of the computer.'},
+ headset:{name:'USB Headset',icon:'🎧',type:'both',why:'A headset outputs sound through its headphones and inputs sound through its microphone.'},
+ dock:{name:'USB-C Dock',icon:'🔌',type:'both',why:'A dock carries data and signals between the computer and multiple input/output devices.'}
 };
 
 const tickets=[
- {title:'The customer cannot type.',text:'Install a device that lets the customer enter letters and numbers.',correct:'keyboard',
- trouble:{title:'Keyboard installed... but still no typing!',symptom:'The keyboard lights are off and no keys respond.',hint:'Think about the connection before replacing the whole device.',
- options:['Restart the printer','Reconnect the USB cable','Turn up the speakers'],correctFix:1,explain:'The keyboard is an input device. If it has no power or response, checking/reconnecting the USB connection is a good first step.'}},
- {title:'The pointer will not move.',text:'Install a device used to point, click, and select items.',correct:'mouse',
- trouble:{title:'Mouse connected, but the pointer is frozen.',symptom:'The mouse is on, but movement is not reaching the computer.',hint:'A connection problem can stop input data from reaching the PC.',
- options:['Reconnect the mouse receiver/cable','Add paper to the printer','Increase monitor brightness'],correctFix:0,explain:'The mouse sends input data to the computer. Reconnecting its cable or wireless receiver can restore that data path.'}},
- {title:'The customer cannot hear videos.',text:'Install a device that plays sound from the computer.',correct:'speakers',
- trouble:{title:'Speakers installed... silence!',symptom:'The speakers have power, but no sound comes out.',hint:'Before replacing output hardware, check a simple setting.',
- options:['Unmute/increase computer volume','Reconnect the keyboard','Cover the webcam'],correctFix:0,explain:'Speakers are output devices. If they have power but no sound, checking mute/volume is a sensible first troubleshooting step.'}},
- {title:'Nothing is showing on the desk.',text:'Install a device that displays pictures, windows, and text.',correct:'monitor',
- trouble:{title:'Monitor connected... black screen!',symptom:'The monitor has power, but says “No Signal.”',hint:'Power is present, so check the path carrying video output.',
- options:['Check the display cable/input source','Replace the mouse','Turn up microphone volume'],correctFix:0,explain:'A monitor is an output device. “No Signal” often means the video cable or selected input source needs to be checked.'}},
- {title:'Video calls have no picture.',text:'Install a device that captures live video.',correct:'webcam',
- trouble:{title:'Webcam detected... but the picture is black!',symptom:'The app sees the camera, but no image appears.',hint:'Sometimes the device is fine but something physical blocks the input.',
- options:['Open/remove the privacy cover','Turn up speakers','Add printer paper'],correctFix:0,explain:'A webcam is an input device. A privacy cover can block the camera even when the computer detects it.'}},
- {title:'Voice chat is not working.',text:'Install a device that captures the customer’s voice.',correct:'microphone',
- trouble:{title:'Microphone installed... nobody can hear the customer!',symptom:'The microphone appears in the computer, but voice level stays at zero.',hint:'Look for a setting that would stop audio input.',
- options:['Unmute/select the correct microphone','Increase screen brightness','Reconnect the printer'],correctFix:0,explain:'A microphone is an input device. If the level stays at zero, check mute status and the selected input device.'}},
- {title:'The customer needs a paper copy.',text:'Install a device that creates a physical copy of a document.',correct:'printer',
- trouble:{title:'Printer connected... but nothing prints!',symptom:'The printer reports “Paper Empty.”',hint:'The computer sent output, but the printer cannot finish the physical job.',
- options:['Add paper to the tray','Reconnect the webcam','Turn off the monitor'],correctFix:0,explain:'A printer is an output device. If it reports an empty tray, adding paper solves the immediate problem.'}},
- {title:'The kiosk needs a screen students can tap.',text:'Install a device that displays information and accepts touch commands.',correct:'touchscreen',
- trouble:{title:'Touchscreen display works, but taps do nothing!',symptom:'You can see the screen, but touch input is not responding.',hint:'One half of this BOTH-type device is working. Check the input connection.',
- options:['Reconnect the USB/touch data cable','Add printer paper','Turn up speaker volume'],correctFix:0,explain:'A touchscreen is both input and output. The display can work while the touch-data connection fails.'}}
+ {title:'POST completes, but the user cannot enter a password.',text:'The login screen appears normally. Select the device the technician should verify first.',correct:'keyboard',trouble:{title:'USB keyboard has no lights or response.',symptom:'It also fails at the firmware setup screen, before the operating system loads.',hint:'Choose the best first step before assuming an OS or driver problem.',options:['Try a known-good USB port and reseat the cable','Reinstall the printer driver','Change the monitor resolution'],correctFix:0,explain:'Because the failure exists before the OS loads, first verify the physical USB connection/port. This isolates hardware from software.'}},
+ {title:'A Bluetooth pointer stopped working after travel.',text:'Select the device used to move the pointer and choose items.',correct:'mouse',trouble:{title:'The Bluetooth mouse is powered on but absent from the device list.',symptom:'A wired mouse works in the same operating system.',hint:'Focus on the failed connection type.',options:['Clear/re-pair the Bluetooth device and check its battery','Replace the display cable','Restart the print spooler'],correctFix:0,explain:'A working wired mouse narrows the issue to Bluetooth pairing, radio state, or battery power—not the whole input subsystem.'}},
+ {title:'A desktop needs sound for a training room.',text:'Select the device that converts the computer’s audio signal into sound for the room.',correct:'speakers',trouble:{title:'Speakers have power, but audio plays through the monitor.',symptom:'The volume mixer shows activity and nothing is muted.',hint:'The OS may be sending sound to the wrong destination.',options:['Select the speakers as the default output device','Calibrate the touchscreen','Update the scanner driver'],correctFix:0,explain:'When audio activity exists but comes from another device, verify the selected playback/output device before replacing hardware.'}},
+ {title:'A second display is required for a workstation.',text:'Select the device used to show the extended desktop.',correct:'monitor',trouble:{title:'The monitor shows “No Signal.”',symptom:'It has power, but it is set to HDMI while the computer is connected by DisplayPort.',hint:'Check source selection and cabling first.',options:['Select the correct input source and reseat the display cable','Enable microphone permissions','Clear the printer queue'],correctFix:0,explain:'“No Signal” with power present points first to the video path: cable seating, port, adapter, and the monitor’s selected input.'}},
+ {title:'A remote employee needs video conferencing.',text:'Select the device that captures live video for the computer.',correct:'webcam',trouble:{title:'The camera works in one app but not another.',symptom:'The privacy shutter is open and Device Manager shows no error.',hint:'The hardware is proven to work.',options:['Check camera permissions and the app’s selected camera','Replace the system RAM','Change the printer IP address'],correctFix:0,explain:'If one app can use the camera, the best next step is checking application selection and privacy permissions.'}},
+ {title:'A user needs to dictate notes.',text:'Select the device that converts spoken sound into computer input.',correct:'microphone',trouble:{title:'The level meter never moves.',symptom:'A USB headset and a built-in microphone are both listed.',hint:'Multiple installed devices can confuse applications.',options:['Select the intended recording device and check its input level','Change the display orientation','Replace printer toner'],correctFix:0,explain:'Verify the correct default/input device and its mute/level settings before reinstalling drivers or replacing the microphone.'}},
+ {title:'Accounting needs hard copies of invoices.',text:'Select the device that produces a physical copy.',correct:'printer',trouble:{title:'Jobs remain stuck in the print queue.',symptom:'The printer is online, has paper, and shows no hardware error.',hint:'The device is ready; the software queue is not processing.',options:['Clear the queue and restart the print spooler service','Pair the Bluetooth mouse','Calibrate the touchscreen'],correctFix:0,explain:'With the printer ready but jobs stuck, clear the queue and restart the spooler before replacing hardware.'}},
+ {title:'A reception kiosk must display menus and accept taps.',text:'Select the combined input/output device for this job.',correct:'touchscreen',trouble:{title:'Touch targets activate in the wrong location.',symptom:'The display image is correct, but taps register several inches away.',hint:'The input works but its coordinates are inaccurate.',options:['Run touchscreen calibration','Replace the audio cable','Restart the print spooler'],correctFix:0,explain:'Misaligned touch coordinates call for calibration. This is different from a dead touch-data connection.'}},
+ {title:'Paper forms must become searchable digital files.',text:'Select the device that captures a document as computer data.',correct:'scanner',trouble:{title:'The scanner appears as an unknown device.',symptom:'The USB cable and power are good, but scanning software cannot find it.',hint:'The physical connection is present; device identification failed.',options:['Install the correct manufacturer driver/software','Change the projector input','Set speakers as default'],correctFix:0,explain:'An unknown connected device commonly needs the proper driver. Verify compatibility and install the trusted manufacturer package.'}},
+ {title:'A laptop must present slides on a classroom wall.',text:'Select the device that displays the computer’s image for an audience.',correct:'projector',trouble:{title:'The desktop appears, but the projected text is clipped and blurry.',symptom:'The projector’s native resolution differs from the laptop output.',hint:'The signal exists; image formatting is wrong.',options:['Set a supported/native resolution and check aspect ratio','Re-pair the mouse','Enable camera permissions'],correctFix:0,explain:'With a visible but distorted image, match the output resolution/aspect ratio to the projector before changing hardware.'}},
+ {title:'A help-desk agent needs private audio and voice input.',text:'Select one device that provides both listening and speaking.',correct:'headset',trouble:{title:'Headphones work, but the boom microphone does not.',symptom:'The conferencing app is using the laptop’s built-in microphone.',hint:'One function works, so verify routing for the other.',options:['Select the headset microphone as the app’s input','Replace the monitor cable','Add paper to the printer'],correctFix:0,explain:'A headset is both input and output. Each side can have a different default, so verify the app’s recording-device selection.'}},
+ {title:'A laptop needs one cable for display, keyboard, and network.',text:'Select the device that connects several peripherals through one laptop port.',correct:'dock',trouble:{title:'The keyboard works through the dock, but external video does not.',symptom:'The same monitor and cable work when connected directly to another computer.',hint:'Some USB-C ports and cables carry data but not every display mode.',options:['Verify the laptop port/cable supports video and update dock firmware','Replace the keyboard switches','Clear the printer queue'],correctFix:0,explain:'Partial dock operation proves some connectivity. Verify USB-C video capability, cable specification, display drivers, and dock firmware.'}}
 ];
 
 let order=[],ticketIndex=0,score=0,selected=null,installed=null,fixesDone=0,phase='install';
@@ -350,6 +344,7 @@ $('#restartBtn').addEventListener('click',()=>{
 });
 
 order=shuffle(tickets);
+$('#totalRepairs').textContent=tickets.length;
 renderTicket();
 </script>
 </body>
